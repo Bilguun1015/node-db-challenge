@@ -60,7 +60,45 @@ router.post('/resources', (req, res) => {
         });
 });
 
-//middleware
+router.get('/projects/:id/tasks', (req, res) => {
+    const { id } = req.params;
+
+    Projects.findTasks(id)
+        .then(tasks => {
+            if(tasks.length) {
+                return res.json(tasks)
+            } else {
+                res.status(404).json({message: 'could not find tasks for given project'});
+            };
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({error: 'error finding tasks'})
+        });
+    });
+
+router.post('/projects/:id/tasks', (req, res) => {
+    const taskData = req.body;
+    const { id } = req.params; 
+    
+    if(!req.body.description) {
+        return res.status(400).json({message: 'must include description for the task'});
+    };
+    Projects.findById(id)
+    .then(project => {
+        if (project) {
+        Projects.addTask(taskData, id)
+        .then(task => {
+            res.status(201).json(task);
+        })
+        } else {
+        res.status(404).json({ message: 'Could not find project with given id.' });
+        };
+    })
+    .catch (err => {
+        res.status(500).json({ message: 'Failed to create new task' });
+    });
+});
 
 
 module.exports = router;
